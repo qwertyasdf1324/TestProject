@@ -18,37 +18,37 @@ namespace SimpleWebApi.Models
         {
             Certificates = new List<Certificate>();
         }
+    }
 
-        public sealed class NHibernateMap : ClassMap<Company>
+    public sealed class NHibernateMap : ClassMap<Company>
+    {
+        public NHibernateMap()
         {
-            public NHibernateMap()
-            {
-                Table("Company");
-                DynamicInsert();
-                DynamicUpdate();
-                Id(_ => _.Id)
-                    .GeneratedBy.Native()
-                    .Unique()
-                    .Not.Nullable();
-                Map(_ => _.Name)
-                    .Not.Nullable()
-                    .Length(100);
-                Map(_ => _.Website)
-                    .Not.Nullable()
-                    .Length(100);
-                Map(_ => _.Description);
-                Map(_ => _.CreateDate);
-                References(_ => _.Address)
-                    .Column("Address")
-                    .Cascade
-                    .All();
-                HasManyToMany(_ => _.Certificates)
-                    .ParentKeyColumn("CompanyId")
-                    .ChildKeyColumn("CertificateId")
-                    .Cascade
-                    .All()
-                    .Table("CompanyCertificate");
-            }
+            Table("Company");
+            DynamicInsert();
+            DynamicUpdate();
+            Id(_ => _.Id)
+                .GeneratedBy.Native()
+                .Unique()
+                .Not.Nullable();
+            Map(_ => _.Name)
+                .Not.Nullable()
+                .Length(100);
+            Map(_ => _.Website)
+                .Not.Nullable()
+                .Length(100);
+            Map(_ => _.Description);
+            Map(_ => _.CreateDate);
+            References(_ => _.Address)
+                .Column("Address")
+                .Cascade
+                .All();
+            HasManyToMany(_ => _.Certificates)
+                .ParentKeyColumn("CompanyId")
+                .ChildKeyColumn("CertificateId")
+                .Cascade
+                .All()
+                .Table("CompanyCertificate");
         }
     }
 }
