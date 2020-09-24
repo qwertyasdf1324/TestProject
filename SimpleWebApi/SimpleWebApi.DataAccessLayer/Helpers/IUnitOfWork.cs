@@ -1,5 +1,5 @@
 ﻿
-namespace SimpleWebApi.BusinessLogicLayer.Repositories
+namespace SimpleWebApi.DataAccessLayer.Helpers
 {
     public interface IUnitOfWork
     {

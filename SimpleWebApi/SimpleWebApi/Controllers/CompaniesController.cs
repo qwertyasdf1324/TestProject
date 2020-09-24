@@ -2,9 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using NHibernate;
-using NHibernate.Linq;
-using SimpleWebApi.Models;
+using SimpleWebApi.BusinessLogicLayer.DTOs;
+using SimpleWebApi.BusinessLogicLayer.Services;
 
 namespace SimpleWebApi.Controllers
 {
@@ -12,33 +11,37 @@ namespace SimpleWebApi.Controllers
     [ApiController]
     public class CompaniesController : ControllerBase
     {
-        public ISession Session { get; set; }
+        public ICompanyService companyService { get; set; }
 
-        public CompaniesController(ISession session) 
+        public CompaniesController(ICompanyService companyService)
         {
-            Session = session;
+            this.companyService = companyService;
         }
 
         // GET: /Companies
         [HttpGet]
 
-        public async Task<ActionResult<IEnumerable<Company>>> GetAll() => await Session.Query<Company>().ToListAsync();
+        public async Task<ActionResult<IEnumerable<Company>>> GetAll() => Ok(await companyService.GetAll());
+
 
         // GET /Companies/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Company>> Get(int id)
         {
-            var companyToFind = await Session.Query<Company>().FirstAsync(_ => _.Id == id);
-            
+            var companyToFind = await companyService.GetById(id);
 
-            //if (companyToFind) 
-            //{
-            //    return NotFound();
-            //}
+            if (companyToFind == null)
+            {
+                return NotFound(new 
+                { 
+                    message = $"There's nothing found by this id:{id} - it doesn't exist, try another one."
+                });
+            }
 
             return companyToFind;
         }
 
+        /*
         // POST /Companies
         [HttpPost]
         public async Task<ActionResult<Company>> Post(Company company)
@@ -95,5 +98,6 @@ namespace SimpleWebApi.Controllers
 
             return CreatedAtAction("Get", new { id = ids.LastOrDefault() }, company);
         }
+        */
     }
 }

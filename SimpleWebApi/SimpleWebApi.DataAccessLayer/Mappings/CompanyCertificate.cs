@@ -1,8 +1,6 @@
-﻿using FluentNHibernate.Conventions.Helpers;
-using FluentNHibernate.Mapping;
-using System;
+﻿using FluentNHibernate.Mapping;
 
-namespace SimpleWebApi.Models
+namespace SimpleWebApi.DataAccessLayer.Mappings
 {
     public class CompanyCertificate
     {

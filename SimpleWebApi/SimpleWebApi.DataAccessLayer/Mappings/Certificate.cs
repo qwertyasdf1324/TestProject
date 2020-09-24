@@ -1,7 +1,7 @@
 ﻿using FluentNHibernate.Mapping;
 using System;
 
-namespace SimpleWebApi.Models
+namespace SimpleWebApi.DataAccessLayer.Mappings
 {
     public class Certificate
     {

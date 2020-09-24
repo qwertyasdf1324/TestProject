@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using SimpleWebApi.BusinessLogicLayer.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SimpleWebApi.BusinessLogicLayer.Services
 {
     public interface ICompanyService
     {
-        //IEnumerable<Company> GetAll();
-        //Product GetById(int id);
-        //void Create(Product product);
-        //void Update(Product product);
-        //void Delete(int id);
+        Task<IEnumerable<Company>> GetAll();
+        Task<Company> GetById(int id);
+        //Task<Company> Create(Company company);
     }
 }

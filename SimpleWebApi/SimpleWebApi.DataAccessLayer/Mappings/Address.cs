@@ -1,6 +1,6 @@
 ﻿using FluentNHibernate.Mapping;
 
-namespace SimpleWebApi.Models
+namespace SimpleWebApi.DataAccessLayer.Mappings
 {
     public class Address
     {
