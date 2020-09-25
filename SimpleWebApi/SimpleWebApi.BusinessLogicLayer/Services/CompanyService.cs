@@ -4,6 +4,7 @@ using BLL = SimpleWebApi.BusinessLogicLayer.DTOs;
 using SimpleWebApi.DataAccessLayer.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SimpleWebApi.BusinessLogicLayer.DTOs;
 
 namespace SimpleWebApi.BusinessLogicLayer.Services
 {
@@ -23,17 +24,19 @@ namespace SimpleWebApi.BusinessLogicLayer.Services
 
         #endregion
 
-        private IRepository<DAL.Company> companyRepository;
+        private ICompanyRepository companyRepository;
 
-        public CompanyService(IRepository<DAL.Company> companyRepository)
+        public CompanyService(ICompanyRepository companyRepository)
         {
             this.companyRepository = companyRepository;
         }
 
         public async Task<IEnumerable<BLL.Company>> GetAll() => companyServiceObjMapper.Map<IEnumerable<DAL.Company>, IEnumerable<BLL.Company>>(await companyRepository.GetAll());
 
-        public async Task<BLL.Company> GetById(int id) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.GetById(id));
-        //
-        //public async Task<BLL.Company> Create(BLL.Company company) => await companyRepository.Create(company);
+        public async Task<BLL.Company> Get(int id) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Get(id));
+
+        public async Task<BLL.Company> Create(BLL.Company company) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Create(companyServiceObjMapper.Map<BLL.Company, DAL.Company>(company)));
+
+        public async Task<Company> Get(string name) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Get(name));
     }
 }

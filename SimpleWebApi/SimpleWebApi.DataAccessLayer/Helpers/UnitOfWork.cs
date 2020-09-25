@@ -13,6 +13,8 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
     public class UnitOfWork : IUnitOfWork
     {
         IConfiguration configuration;
+        public ITransaction Transaction { get; set; }
+        public ISession Session => SessionFactory.OpenSession();
 
         public ISessionFactory SessionFactory 
         {
@@ -44,9 +46,6 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
                 return cfg.BuildConfiguration().BuildSessionFactory();
             } 
         }
-        public ITransaction _transaction;
-
-        public ISession Session => SessionFactory.OpenSession();
 
         public UnitOfWork(IConfiguration configuration)
         {
@@ -55,20 +54,20 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
 
         public void BeginTransaction()
         {
-            _transaction = Session.BeginTransaction();
+            Transaction = Session.BeginTransaction();
         }
 
         public void Commit()
         {
             try
             {
-                if (_transaction != null && _transaction.IsActive)
-                    _transaction.Commit();
+                if (Transaction != null && Transaction.IsActive)
+                    Transaction.Commit();
             }
             catch
             {
-                if (_transaction != null && _transaction.IsActive)
-                    _transaction.Rollback();
+                if (Transaction != null && Transaction.IsActive)
+                    Transaction.Rollback();
 
                 throw;
             }

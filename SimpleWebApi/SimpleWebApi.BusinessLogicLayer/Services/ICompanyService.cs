@@ -7,7 +7,8 @@ namespace SimpleWebApi.BusinessLogicLayer.Services
     public interface ICompanyService
     {
         Task<IEnumerable<Company>> GetAll();
-        Task<Company> GetById(int id);
-        //Task<Company> Create(Company company);
+        Task<Company> Get(int id);
+        Task<Company> Get(string name);
+        Task<Company> Create(Company company);
     }
 }
