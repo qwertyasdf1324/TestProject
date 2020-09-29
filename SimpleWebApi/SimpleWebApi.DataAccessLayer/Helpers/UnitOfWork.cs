@@ -3,6 +3,7 @@ using FluentNHibernate.Cfg.Db;
 using FluentNHibernate.Conventions.Helpers;
 using Microsoft.Extensions.Configuration;
 using NHibernate;
+using NHibernate.Context;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -15,8 +16,8 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
         IConfiguration configuration;
         public ITransaction Transaction { get; set; }
         public ISession Session => SessionFactory.OpenSession();
-
-        public ISessionFactory SessionFactory 
+        
+        public ISessionFactory SessionFactory
         {
             get
             {
@@ -33,6 +34,7 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
                         c.SetProperty(Environment.ShowSql, "true");
                         c.SetProperty(Environment.UseSecondLevelCache, "false");
                         c.SetProperty(Environment.UseQueryCache, "false");
+                        c.SetProperty("current_session_context_class", "web");
                         c.SetProperty(Environment.CommandTimeout,
                         TimeSpan.FromSeconds(30).TotalSeconds.ToString(CultureInfo.InvariantCulture));
                     })
@@ -44,7 +46,7 @@ namespace SimpleWebApi.DataAccessLayer.Helpers
                     });
 
                 return cfg.BuildConfiguration().BuildSessionFactory();
-            } 
+            }
         }
 
         public UnitOfWork(IConfiguration configuration)

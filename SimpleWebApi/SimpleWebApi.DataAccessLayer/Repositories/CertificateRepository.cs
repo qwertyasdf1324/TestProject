@@ -30,5 +30,20 @@ namespace SimpleWebApi.DataAccessLayer.Repositories
         }
 
         public async Task<Certificate> GetByNumber(int number) => await UnitOfWork.Session.Query<Certificate>().FirstAsync(_ => _.Number == number);
+
+        public Task<Certificate> Delete(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Certificate> Update(Certificate entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Certificate> Update(int id, Certificate entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

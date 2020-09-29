@@ -31,12 +31,14 @@ namespace SimpleWebApi.BusinessLogicLayer.Services
             this.companyRepository = companyRepository;
         }
 
-        public async Task<IEnumerable<BLL.Company>> GetAll() => companyServiceObjMapper.Map<IEnumerable<DAL.Company>, IEnumerable<BLL.Company>>(await companyRepository.GetAll());
+        public async Task<IEnumerable<BLL.Company>> GetAll(LimitOffset limitOffset) => companyServiceObjMapper.Map<IEnumerable<DAL.Company>, IEnumerable<BLL.Company>>(await companyRepository.GetAll(limitOffset.Limit, limitOffset.Offset));
 
         public async Task<BLL.Company> Get(int id) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Get(id));
 
         public async Task<BLL.Company> Create(BLL.Company company) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Create(companyServiceObjMapper.Map<BLL.Company, DAL.Company>(company)));
 
-        public async Task<Company> Get(string name) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Get(name));
+        public async Task<Company> Delete(int id) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Delete(id));
+
+        public async Task<Company> Update(int id, BLL.Company company) => companyServiceObjMapper.Map<DAL.Company, BLL.Company>(await companyRepository.Update(id, companyServiceObjMapper.Map<BLL.Company, DAL.Company>(company)));
     }
 }

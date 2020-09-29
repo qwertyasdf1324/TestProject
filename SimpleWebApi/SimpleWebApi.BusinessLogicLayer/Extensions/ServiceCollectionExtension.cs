@@ -8,8 +8,8 @@ namespace SimpleWebApi.BusinessLogicLayer.Extensions
     {
         public static void MapRepositories(this IServiceCollection services)
         {
-            services.AddSingleton<ICertificateRepository, CertificateRepository>();
-            services.AddSingleton<ICompanyRepository, CompanyRepository>();
+            services.AddScoped<ICertificateRepository, CertificateRepository>();
+            services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddSingleton<IUnitOfWork, UnitOfWork>();
         }
     }

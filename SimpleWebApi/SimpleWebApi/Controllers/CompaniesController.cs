@@ -19,9 +19,10 @@ namespace SimpleWebApi.Controllers
 
         // GET: /Companies
         [HttpGet]
-
-        public async Task<ActionResult<IEnumerable<Company>>> GetAll() => Ok(await companyService.GetAll());
-
+        public async Task<ActionResult<IEnumerable<Company>>> GetAll([FromQuery] LimitOffset limitOffset)
+        {
+            return Ok(await companyService.GetAll(limitOffset));
+        }
 
         // GET /Companies/5
         [HttpGet("{id:int}")]
@@ -47,6 +48,43 @@ namespace SimpleWebApi.Controllers
             var savedCompany = await companyService.Create(company);
 
             return CreatedAtAction("Get", new { id = savedCompany.Id }, savedCompany);
+        }
+
+        // PUT: /Companies/5
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<Company>> Put(int id, Company company)
+        {
+            var companyToUpdate = await companyService.Get(id);
+
+            if (companyToUpdate == null)
+            {
+                return NotFound(new
+                {
+                    message = $"There's nothing found by this id:{id} - it doesn't exist, try another one."
+                });
+            }
+
+            var updatedCompany = await companyService.Update(id, company);
+            updatedCompany.Id = id;
+
+            return Ok(updatedCompany);
+        }
+
+        // DELETE: Companies/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Company>> Delete(int id)
+        {
+            var companyToDelete = await companyService.Delete(id);
+
+            //if (companyToFind == null)
+            //{
+            //    return NotFound(new
+            //    {
+            //        message = $"There's nothing found by this id:{id} - it doesn't exist, try another one."
+            //    });
+            //}
+
+            return null;
         }
     }
 }
