@@ -1,130 +1,177 @@
-﻿using NHibernate.Linq;
+﻿using NHibernate;
+using NHibernate.Linq;
 using SimpleWebApi.DataAccessLayer.Helpers;
 using SimpleWebApi.DataAccessLayer.Mappings;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace SimpleWebApi.DataAccessLayer.Repositories
 {
     public class CompanyRepository : ICompanyRepository
     {
-        public UnitOfWork UnitOfWork { get; set; }
+        public ISession Session { get; set; }
 
-        public CompanyRepository(IUnitOfWork unitOfWork)
+        public CompanyRepository(ISession session)
         {
-            UnitOfWork = (UnitOfWork)unitOfWork;
+            Session = session;
         }
 
-        public async Task<IEnumerable<Company>> GetAll() => await UnitOfWork.Session.Query<Company>().ToListAsync();
+        public async Task<IEnumerable<Company>> GetAll() => await Session.Query<Company>().ToListAsync();
 
-        public async Task<Company> Get(int id) => await UnitOfWork.Session.GetAsync<Company>(id);
+        public async Task<Company> Get(int id) => await Session.GetAsync<Company>(id);
 
         public async Task<Company> Create(Company company)
         {
-            UnitOfWork.BeginTransaction();
+            List<Certificate> certificatesToAdd = new List<Certificate>();
 
-            var allCertificates = await UnitOfWork.Session.Query<Certificate>().ToListAsync();
-            var certificatesToAdd = company.Certificates.Select(_ => _.Number).Select(async _ => await UnitOfWork.Session.Query<Certificate>().FirstAsync(__ => __.Number == _)).ToList();
+            using (var transaction = Session.BeginTransaction())
+            {
+                var allCertificates = await Session.Query<Certificate>().ToListAsync();
+                certificatesToAdd = company.Certificates.Select(_ => _.Number).Select(_ => Session.Query<Certificate>().First(__ => __.Number == _)).ToList();
 
-            company.Certificates.Clear();
+                company.Certificates.Clear();
 
-            await UnitOfWork.Session.SaveAsync(company);
+                await Session.SaveAsync(company);
 
-            UnitOfWork.Commit();
+                try
+                {
+                    if (transaction != null && transaction.IsActive)
+                        transaction.Commit();
+                }
+                catch
+                {
+                    if (transaction != null && transaction.IsActive)
+                        transaction.Rollback();
+
+                    throw;
+                }
+            }
 
             var savedCompany = await Get(company.Id);
 
-            certificatesToAdd.ForEach(async _ =>
+            certificatesToAdd.ForEach(_ =>
             {
-                UnitOfWork.BeginTransaction();
-
-                await UnitOfWork.Session.SaveAsync(new CompanyCertificate()
+                using (var transaction = Session.BeginTransaction())
                 {
-                    CompanyId = savedCompany.Id,
-                    CertificateId = _.Result.Id
-                });
+                    Session.Save(new CompanyCertificate()
+                    {
+                        CompanyId = savedCompany.Id,
+                        CertificateId = _.Id
+                    });
 
-                UnitOfWork.Commit(); ;
+                    try
+                    {
+                        if (transaction != null && transaction.IsActive)
+                            transaction.Commit();
+                    }
+                    catch
+                    {
+                        if (transaction != null && transaction.IsActive)
+                            transaction.Rollback();
+                        throw;
+                    }
+                }
             });
 
             company.Certificates = new List<Certificate>();
 
-            certificatesToAdd.ForEach(_ => company.Certificates.Add(_.Result));
+            certificatesToAdd.ForEach(_ => company.Certificates.Add(_));
 
             return company;
         }
 
-        public Task<Company> Delete(int id)
+        public async Task<Company> Delete(int id)
         {
-            //UnitOfWork.Session.FlushMode = NHibernate.FlushMode.Commit;
+            Company companyToDelete;
 
-            var companyCertificateAssociations = UnitOfWork.Session.Query<CompanyCertificate>().Select(_ => _).Where(_ => _.CompanyId == id).ToList();
-
-            UnitOfWork.BeginTransaction();
-
-            companyCertificateAssociations.ForEach(_ =>
+            using (var transaction = Session.BeginTransaction())
             {
-                //UnitOfWork.Session.LoadAsync<CompanyCertificate>(_.Id);
-                UnitOfWork.Session.Delete(_);
-            });
+                var companyCertificateAssociations = await Session.Query<CompanyCertificate>().Select(_ => _).Where(_ => _.CompanyId == id).ToListAsync();
 
-            //UnitOfWork.Commit();
-            //UnitOfWork.Session.Flush();
+                companyCertificateAssociations.ForEach(async _ => await Session.DeleteAsync(_));
 
-            //UnitOfWork.BeginTransaction();
-            //await UnitOfWork.Session.LoadAsync<Company>(companyToDelete.Id);
-            var companyToDelete = UnitOfWork.Session.Query<Company>().First(_ => _.Id == id);
-            try
-            {
-                UnitOfWork.Session.Delete(companyToDelete);
-            }
-            catch (System.Exception message)
-            {
-
-                throw;
+                await transaction.CommitAsync();
             }
 
-            UnitOfWork.Commit();
+            using (var transaction = Session.BeginTransaction())
+            {
+                companyToDelete = await Session.GetAsync<Company>(id);
 
-            return null;
+                if (companyToDelete == null)
+                {
+                    return null;
+                }
+
+                await Session.DeleteAsync(companyToDelete);
+
+                await transaction.CommitAsync();
+            }
+
+            return companyToDelete;
         }
 
         public async Task<Company> Update(int id, Company company)
         {
-            UnitOfWork.BeginTransaction();
+            List<Certificate> certificatesToAdd = new List<Certificate>();
 
-            var allCertificates = await UnitOfWork.Session.Query<Certificate>().ToListAsync();
-            var certificatesToAdd = company.Certificates.Select(_ => _.Number).Select(async _ => await UnitOfWork.Session.Query<Certificate>().FirstAsync(__ => __.Number == _)).ToList();
-
-            company.Certificates.Clear();
-
-            await UnitOfWork.Session.UpdateAsync(company);
-
-            UnitOfWork.Commit();
-
-            var savedCompany = await Get(id);
-
-            certificatesToAdd.ForEach(async _ =>
+            using (var transaction = Session.BeginTransaction())
             {
-                UnitOfWork.BeginTransaction();
+                var allCertificates = await Session.Query<Certificate>().ToListAsync();
+                certificatesToAdd = company.Certificates.Select(_ => _.Number).Select(_ => Session.Query<Certificate>().First(__ => __.Number == _)).ToList();
 
-                await UnitOfWork.Session.SaveOrUpdateAsync(new CompanyCertificate()
+                company.Certificates.Clear();
+
+                await Session.UpdateAsync(company);
+
+                try
                 {
-                    CompanyId = savedCompany.Id,
-                    CertificateId = _.Result.Id
-                });
+                    if (transaction != null && transaction.IsActive)
+                        transaction.Commit();
+                }
+                catch
+                {
+                    if (transaction != null && transaction.IsActive)
+                        transaction.Rollback();
 
-                UnitOfWork.Commit();
+                    throw;
+                }
+            }
+
+            var savedCompany = await Get(company.Id);
+
+            certificatesToAdd.ForEach(_ =>
+            {
+                using (var transaction = Session.BeginTransaction())
+                {
+                    Session.SaveOrUpdate(new CompanyCertificate()
+                    {
+                        CompanyId = savedCompany.Id,
+                        CertificateId = _.Id
+                    });
+
+                    try
+                    {
+                        if (transaction != null && transaction.IsActive)
+                            transaction.Commit();
+                    }
+                    catch
+                    {
+                        if (transaction != null && transaction.IsActive)
+                            transaction.Rollback();
+                        throw;
+                    }
+                }
             });
 
             company.Certificates = new List<Certificate>();
 
-            certificatesToAdd.ForEach(_ => company.Certificates.Add(_.Result));
+            certificatesToAdd.ForEach(_ => company.Certificates.Add(_));
 
             return company;
         }
 
-        public async Task<IEnumerable<Company>> GetAll(int limit, int offset) => await UnitOfWork.Session.Query<Company>().Skip(offset).Take(limit).ToListAsync();
+        public async Task<IEnumerable<Company>> GetAll(int limit, int offset) => await Session.Query<Company>().Skip(offset).Take(limit).ToListAsync();
     }
 }

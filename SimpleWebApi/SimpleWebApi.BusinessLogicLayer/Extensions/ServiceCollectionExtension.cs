@@ -10,7 +10,9 @@ namespace SimpleWebApi.BusinessLogicLayer.Extensions
         {
             services.AddScoped<ICertificateRepository, CertificateRepository>();
             services.AddScoped<ICompanyRepository, CompanyRepository>();
-            services.AddSingleton<IUnitOfWork, UnitOfWork>();
+
+            services.AddSingleton<NHibernateHelper>();
+            services.AddScoped(_ => _.GetService<NHibernateHelper>().SessionFactory.OpenSession());
         }
     }
 }

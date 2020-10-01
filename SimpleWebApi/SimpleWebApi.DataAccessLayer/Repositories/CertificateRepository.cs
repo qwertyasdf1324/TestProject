@@ -1,4 +1,5 @@
-﻿using NHibernate.Linq;
+﻿using NHibernate;
+using NHibernate.Linq;
 using SimpleWebApi.DataAccessLayer.Helpers;
 using SimpleWebApi.DataAccessLayer.Mappings;
 using System;
@@ -10,14 +11,14 @@ namespace SimpleWebApi.DataAccessLayer.Repositories
 {
     public class CertificateRepository : ICertificateRepository
     {
-        public UnitOfWork UnitOfWork { get; set; }
+        public ISession Session { get; set; }
 
-        public CertificateRepository(IUnitOfWork unitOfWork)
+        public CertificateRepository(ISession session)
         {
-            UnitOfWork = (UnitOfWork)unitOfWork;
+            Session = session;
         }
 
-        public async Task<IEnumerable<Certificate>> GetAll() => await UnitOfWork.Session.Query<Certificate>().ToListAsync();
+        public async Task<IEnumerable<Certificate>> GetAll() => await Session.Query<Certificate>().ToListAsync();
 
         public Task<Certificate> Get(int id)
         {
@@ -29,7 +30,7 @@ namespace SimpleWebApi.DataAccessLayer.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Certificate> GetByNumber(int number) => await UnitOfWork.Session.Query<Certificate>().FirstAsync(_ => _.Number == number);
+        public async Task<Certificate> GetByNumber(int number) => await Session.Query<Certificate>().FirstAsync(_ => _.Number == number);
 
         public Task<Certificate> Delete(int id)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SimpleWebApi.BusinessLogicLayer.DTOs;
@@ -76,15 +77,19 @@ namespace SimpleWebApi.Controllers
         {
             var companyToDelete = await companyService.Delete(id);
 
-            //if (companyToFind == null)
-            //{
-            //    return NotFound(new
-            //    {
-            //        message = $"There's nothing found by this id:{id} - it doesn't exist, try another one."
-            //    });
-            //}
+            if (companyToDelete == null)
+            {
+                return NotFound(new
+                {
+                    message = $"There's nothing to delete by this id:{id} - the entity with the id doesn't exist, try another one."
+                });
+            }
 
-            return null;
+            return Ok(new
+            {
+                Message = $"Company by the ID: {id} is successfully deleted.",
+                CompanyName = companyToDelete.Name
+            });
         }
     }
 }
